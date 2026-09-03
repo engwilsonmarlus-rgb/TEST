@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EquipDOC">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>EquipDOC</title>
+<style>
+:root{
+  --bg:#0f1117;--bg2:#181b24;--bg3:#1e2230;
+  --accent:#1e40af;--accent2:#1e3a8a;--danger:#ff4d6d;
+  --text:#e8eaf0;--text2:#8a8fa8;--text3:#4a4f66;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --radius:14px;--radius-sm:8px;
+  --mono: 'Courier New', Courier, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+body.light{
+  --bg:#f0f2f5;--bg2:#ffffff;--bg3:#e8eaed;
+  --accent:#1e40af;--accent2:#1e3a8a;--danger:#dc2626;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);transition:background 0.2s,color 0.2s}
+body{overflow:hidden;position:fixed;width:100%;height:100%}
+#app{width:100%;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+.hdr{padding:calc(var(--safe-top)+14px) 16px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;z-index:10}
+.hdr-logo{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);flex:1}
+.hdr-logo span{color:var(--text2)}
+
+.screen{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--safe-bot)+90px)}
+.screen.active{display:block}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s,transform 0.1s;white-space:nowrap}
+.btn:active{transform:scale(0.96)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.btn-primary:active{background:var(--accent2)}
+.btn-danger{background:rgba(255,77,109,0.12);color:var(--danger);border-color:rgba(255,77,109,0.3)}
+.btn-block{width:100%;justify-content:center;padding:13px}
+.btn-icon{padding:8px}
+
+.fsec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.flbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--mono);margin-bottom:8px;display:block}
+.finp{width:100%;padding:11px 13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--sans);font-size:15px;outline:none}
+.finp:focus{border-color:var(--accent)}
+.finp::placeholder{color:var(--text3)}
+textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
+.hint{font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5}
+
+.part-row,.edit-part-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.edit-part-wrap{flex:1;display:flex;flex-direction:column;gap:3px}
+.edit-part-wrap .finp{margin:0}
+.ptag{font-size:11px;font-family:var(--mono)}
+.ptag-ok{color:var(--accent)}
+.ptag-no{color:var(--text3)}
+
+.home-title{font-size:22px;font-weight:600;margin-bottom:20px}
+.eq-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.eq-card:active{background:var(--bg3)}
+.eq-ico{width:44px;height:44px;border-radius:10px;background:rgba(30,64,175,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.eq-info{flex:1;min-width:0}
+.eq-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eq-meta{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
+.eq-pbar{height:3px;background:var(--bg3);border-radius:2px;margin-top:8px;overflow:hidden}
+.eq-pfill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.4s}
+.empty{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-ico{font-size:48px;margin-bottom:16px;opacity:0.3}
+.empty-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:6px}
+.empty-sub{font-size:13px;line-height:1.6}
+
+.dstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px}
+.stat-val{font-size:24px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+.gp{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px}
+.gp-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:8px;font-family:var(--mono)}
+.gp-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.gp-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.5s}
+.part-sec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.part-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border)}
+.part-title{font-size:14px;font-weight:600}
+.part-badge{font-size:11px;font-family:var(--mono);font-weight:700;padding:3px 10px;border-radius:20px}
+.badge-ok{background:rgba(30,64,175,0.2);color:var(--accent)}
+.badge-no{background:rgba(0,0,0,0.06);color:var(--text3)}
+.part-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+.thumb-wrap{width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative}
+.thumb{width:100%;height:100%;object-fit:cover;display:block}
+.ph-empty{font-size:28px;opacity:0.2}
+.fname{font-family:var(--mono);font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fnote{font-size:11px;color:var(--text3);line-height:1.4;word-break:break-word}
+.p-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* loading overlay */
+
+/* ── DESKTOP ────────────────────────────────────────────────────────────────── */
+@media(min-width:768px){
+  .thumb-wrap{aspect-ratio:unset;height:160px}
+  #parts-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #parts-list .part-sec{margin-bottom:0}
+  #screen-detail > div,
+  #screen-home > div,
+  #screen-new-eq > div,
+  #screen-edit-eq > div{max-width:860px;margin:0 auto}
+}
+.loading{display:none;position:fixed;inset:0;background:rgba(15,17,23,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loading.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--text2);font-family:var(--mono)}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;align-items:center;justify-content:center;padding:24px}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;width:100%;max-width:360px}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+
+.toast{position:fixed;bottom:calc(var(--safe-bot)+20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;color:var(--text);opacity:0;transition:opacity 0.25s,transform 0.25s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.dactions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+::-webkit-scrollbar{width:0}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="hdr">
+    <div class="hdr-logo">Equip<span>DOC</span></div>
+    <button class="btn" id="btn-back" style="display:none" onclick="goBack()">← Voltar</button>
+    <button class="btn btn-primary" id="btn-novo" onclick="openNewEq()">+ Novo</button>
+    <button class="btn btn-icon" id="btn-theme" onclick="toggleTheme()" title="Alternar tema">◐</button>
+    <button class="btn btn-icon" id="btn-more" onclick="toggleMoreMenu()" title="Mais opções">⋯</button>
+    <button class="btn" id="btn-edit" style="display:none" onclick="openEditEq()">✏ Editar</button>
+    <button class="btn btn-danger" id="btn-del" style="display:none" onclick="deleteCurrentEq()">× Excluir</button>
+  </div>
+
+  <!-- MENU MAIS OPÇÕES -->
+  <div id="more-menu" style="display:none;position:fixed;top:60px;right:12px;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.3);min-width:160px;overflow:hidden">
+    <button class="btn" style="width:100%;justify-content:flex-start;border:none;border-radius:0;border-bottom:1px solid var(--border)" onclick="openDupModal();closeMoreMenu()">⧉ Duplicar</button>
+    <button class="btn" style="width:100%;justify-content:flex-start;border:none;border-radius:0;border-bottom:1px solid var(--border)" onclick="forceUpdate();closeMoreMenu()">↺ Atualizar</button>
+    <button class="btn btn-danger" style="width:100%;justify-content:flex-start;border:none;border-radius:0" onclick="openResetModal();closeMoreMenu()">Resetar</button>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div style="padding:20px">
+      <div class="home-title">Equipamentos</div>
+      <div id="eq-list"></div>
+      <div class="empty" id="eq-empty" style="display:none">
+        <div class="empty-ico">🔧</div>
+        <div class="empty-title">Nenhum equipamento</div>
+        <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
+      </div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v30.5</div>
+    </div>
+  </div>
+
+  <!-- GRUPOS (para equipamentos com subgrupos) -->
+  <div class="screen" id="screen-groups">
+    <div style="padding:20px">
+      <div class="dstats" id="groups-stats"></div>
+      <div class="gp">
+        <div class="gp-lbl"><span>Progresso geral</span><span id="groups-gp-pct">0%</span></div>
+        <div class="gp-bar"><div class="gp-fill" id="groups-gp-fill" style="width:0%"></div></div>
+      </div>
+      <div class="dactions">
+        <button class="btn" onclick="openZipModal()">↓ Exportar ZIP</button>
+        <button class="btn btn-danger" onclick="deleteAllPhotos()">× Apagar tudo</button>
+      </div>
+      <div id="groups-list"></div>
+    </div>
+  </div>
+
+  <!-- NOVO -->
+  <div class="screen" id="screen-new-eq">
+    <div style="padding:20px">
+      <div class="fsec">
+        <label class="flbl">Nome do equipamento</label>
+        <input class="finp" type="text" id="eq-name-inp" placeholder="Ex: Compressor, Gerador...">
+      </div>
+      <div class="fsec">
+        <label class="flbl">Partes do equipamento</label>
+        <p class="hint">Adicione o nome de cada parte que será fotografada.</p>
+        <div id="parts-cont"></div>
+        <button class="btn" onclick="addPartRow()" style="margin-top:8px">+ Adicionar parte</button>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveEquipment()">✓ Salvar equipamento</button>
+    </div>
+  </div>
+
+  <!-- DETALHE -->
+  <div class="screen" id="screen-detail">
+    <div style="padding:20px">
+      <div id="detail-eq-label" style="font-size:13px;font-weight:600;color:var(--accent);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;opacity:0.85"></div>
+      <div class="dstats" id="dstats"></div>
+      <div class="gp">
+        <div class="gp-lbl"><span>Progresso</span><span id="gp-pct">0%</span></div>
+        <div class="gp-bar"><div class="gp-fill" id="gp-fill" style="width:0%"></div></div>
+      </div>
+      <div class="dactions">
+        <button class="btn" onclick="openZipModal()">↓ Exportar ZIP</button>
+        <button class="btn btn-danger" onclick="deleteAllPhotos()">× Apagar tudo</button>
+      </div>
+      <!-- input de arquivo inline (sem trocar de tela) -->
+      <input type="file" accept="image/*" id="file-inp-inline" style="display:none" onchange="handleFileInline(event)">
+      <div id="parts-list"></div>
+    </div>
+  </div>
+
+  <!-- EDITAR -->
+  <div class="screen" id="screen-edit-eq">
+    <div style="padding:20px">
+      <div class="fsec">
+        <label class="flbl">Nome do equipamento</label>
+        <input class="finp" type="text" id="edit-name-inp" placeholder="Nome do equipamento">
+      </div>
+      <div class="fsec">
+        <label class="flbl">Partes do equipamento</label>
+        <p class="hint">Renomeie, adicione ou remova partes. Fotos já tiradas são preservadas.</p>
+        <div id="edit-parts-cont"></div>
+        <button class="btn" onclick="addEditPartRow()" style="margin-top:8px">+ Adicionar parte</button>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveEditEquipment()">✓ Salvar alterações</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL FOTO INLINE -->
+<div class="modal-bg" id="modal-foto">
+  <div class="modal-box">
+    <div class="modal-title" id="mf-title">Foto</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(30,64,175,0.1);padding:4px 10px;border-radius:4px;display:inline-block;margin-bottom:14px" id="mf-fname"></div>
+    <div id="mf-preview-wrap" style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:12px;position:relative;cursor:pointer" onclick="document.getElementById('file-inp-inline').click()">
+      <img id="mf-preview" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+      <div id="mf-empty" style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.4">
+        <span style="font-size:36px;opacity:0.25">[ ]</span>
+        <span style="font-size:12px;color:var(--text2)">Toque para selecionar</span>
+      </div>
+    </div>
+    <label class="flbl">Nota / observação (opcional)</label>
+    <textarea class="finp" id="mf-note" placeholder="Ex: desgaste visível, parafuso frouxo..." style="margin-bottom:12px"></textarea>
+    <div class="modal-btns">
+      <button class="btn" style="flex:1;justify-content:center" onclick="closeFotoModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" id="mf-save-btn" onclick="savePhotoInline()" disabled>✓ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DUPLICAR -->
+<div class="modal-bg" id="modal-dup">
+  <div class="modal-box">
+    <div class="modal-title">⧉ Duplicar equipamento</div>
+    <div class="modal-sub">Selecione qual equipamento deseja duplicar:</div>
+    <div id="dup-list" style="max-height:280px;overflow-y:auto;margin-bottom:12px"></div>
+    <button class="btn" style="width:100%;justify-content:center" onclick="closeDupModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL RESET -->
+<div class="modal-bg" id="modal-reset">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--danger)">⚠ Resetar aplicativo</div>
+    <div class="modal-sub">Esta ação irá apagar <strong>todas as fotos, notas e equipamentos personalizados</strong>. O app voltará ao estado padrão com os equipamentos originais.<br><br>Esta ação <strong>não pode ser desfeita</strong>.</div>
+    <div class="modal-btns">
+      <button class="btn" style="flex:1;justify-content:center" onclick="closeResetModal()">Cancelar</button>
+      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="confirmReset()">Resetar tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO -->
+<div class="modal-bg" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-title" id="mc-title">Confirmar</div>
+    <div class="modal-sub" id="mc-msg"></div>
+    <div class="modal-btns">
+      <button class="btn" style="flex:1;justify-content:center" onclick="confirmResolve(false)">Cancelar</button>
+      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="confirmResolve(true)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ZIP -->
+<div class="modal-bg" id="modal-zip">
+  <div class="modal-box">
+    <div class="modal-title">↓ Exportar ZIP</div>
+    <div class="modal-sub">Preencha os campos para nomear o arquivo ZIP.</div>
+    <label class="flbl" id="zip-code-lbl">Código do equipamento</label>
+    <input class="finp" type="text" id="zip-code-inp" placeholder="Ex: 39T1" style="margin-bottom:12px">
+    <label class="flbl" id="zip-sub-lbl">Subestação</label>
+    <input class="finp" type="text" id="zip-sub-inp" placeholder="Ex: SE TERESINA">
+    <div class="modal-btns">
+      <button class="btn" style="flex:1;justify-content:center" onclick="closeZipModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="confirmExportZip()">↓ Baixar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-txt" id="loading-txt">Salvando...</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+// ── DADOS DEFAULT (do Excel) ──────────────────────────────────────────────────
+const DEFAULT_EQUIPMENTS = [
+  { name: 'CHAVE MONO/TANDEM/FUSÍVEL', parts: ['PLACA A','PLACA B','PLACA C','PANO','PLACA COD','AT A','AT B','AT C','MI A1','MI A2','MI A3','MI B1','MI B2','MI B3','MI C1','MI C2','MI C3','FICHA'] },
+  { name: 'DISJUNTOR', parts: ['AT','CABLAGEM 1','CABLAGEM 2','DIAGRAMA','FICHA','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','PANO','PLACA COD','PLACA','PNL AB','PNL ED','PNL VD','FASE A(A)','FASE A','FASE B(A)','FASE B','FASE C(A)','FASE C','FECHAMENTO 1','FECHAMENTO 2','ABERTURA 1','ABERTURA 2'] },
+  { name: 'TRANSFORMADOR DE CORRENTE', parts: ['AT','AT A','AT B','AT C','FICHA','MI A','MI A2','MI B','MI B2','MI C','MI C2','PANO','PLACA','PLACA A','PLACA B','PLACA C','NO A','NO B','NO C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
+  { name: 'PARA-RAIO', parts: ['AT A','AT B','AT C','FASE A','FASE B','FASE C','FICHA','MI A','MI B','MI C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD'] },
+  { name: 'TRANSFORMADOR POTENCIAL', parts: ['AT A','AT B','AT C','FICHA','MI A','MI B','MI C','NO A','NO B','NO C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
+  { name: 'CHAVE TRIPOLAR', parts: ['PANO AB','PANO FE','PLACA','PLACA COD','PNL AT','PNL','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','AT A','AT B','AT C','FICHA'] },
+  { name: 'CHECKLIST DO CARRO', parts: ['FRENTE','TRASEIRA','LADO ESQUERDO','LADO DIREITO','PAINEL LIGADO'] },
+  { name: 'BANCO CAPACITOR', groups: [
+    { name: 'CELULAS', parts: [
+      'MEDIÇÃO A1','MEDIÇÃO A2','MEDIÇÃO A3','MEDIÇÃO A4',
+      'PANO CEL A1','PANO CEL A2','PANO CEL A3','PANO CEL A4','PANO FASE A',
+      'PLACA A1','PLACA A2','PLACA A3','PLACA A4',
+      'MEDIÇÃO B1','MEDIÇÃO B2','MEDIÇÃO B3','MEDIÇÃO B4',
+      'PANO CEL B1','PANO CEL B2','PANO CEL B3','PANO CEL B4','PANO FASE B',
+      'PLACA B1','PLACA B2','PLACA B3','PLACA B4',
+      'MEDIÇÃO C1','MEDIÇÃO C2','MEDIÇÃO C3','MEDIÇÃO C4',
+      'PANO CEL C1','PANO CEL C2','PANO CEL C3','PANO CEL C4','PANO FASE C',
+      'PLACA C1','PLACA C2','PLACA C3','PLACA C4'
+    ]},
+    { name: 'CHAVE TERRA', parts: ['PLACA SEC','MI-N','MI-A','MI-B','MI-C','PANO','PLACA COD','TRAVA OP','PNL AB','PLACA OP'] },
+    { name: 'CHAVE VACUO', parts: ['MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','AT','PLACA COD','PLACA','PANO'] },
+    { name: 'PAINEL', parts: ['PANO','PLACA COD','AT','PNL AB1','PNL AB2','CABLAGEM 1','CABLAGEM 2','PNL VD','PNL ED','PLACA'] },
+    { name: 'PANO', parts: ['PANO 1','PANO 2','PANO 3','PANO 4','AT'] },
+    { name: 'PR', parts: ['AT A','AT B','AT C','MI A','MI B','MI C','PANO','PLACA A','PLACA B','PLACA C'] },
+    { name: 'REATOR', parts: ['MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','PANO','PLACA A','PLACA B','PLACA C'] },
+    { name: 'TC', parts: ['SEC','PLACA','AT','MI','PLACA COD'] }
+  ]},
+  { name: 'REGULADOR', groups: [
+    { name: 'BUCHAS', parts: ['MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','NO L1','NO L2','NO L3','NO S1','NO S2','NO S3','PANO L','PANO S','PLACA L1','PLACA L2','PLACA L3','PLACA S1','PLACA S2','PLACA S3'] },
+    { name: 'CAIXAS DE PASSAGEM DOS TC DE BUCHA', parts: ['CP L1 AB','CP L1 PLACA','CP L1','CP L2 AB','CP L2 PLACA','CP L2','CP L3 AB','CP L3 PLACA','CP L3','CP S1 AB','CP S1 PLACA','CP S1','CP S2 AB','CP S2 PLACA','CP S2','CP S3 AB','CP S3 PLACA','CP S3','CP SOLO AB','CP SOLO PLACA','CP SOLO'] },
+    { name: 'DESUMIDIFICADOR DE AR', parts: ['DESUMIDIFICADOR DE AR 1','DESUMIDIFICADOR DE AR 2','PANO','PLACA 1','PLACA 2'] },
+    { name: 'DISPOSITIVO COLETOR DE GAS', parts: ['DISPOSITIVO COLETOR DE GAS'] },
+    { name: 'FILTRO DE ÓLEO', parts: ['ELETRODUTO','MANÔMETRO','PBN VD','PLACA','PNL AB','PNL COMPLETO','PNL','VALVULA SUPERIOR','VALVURA INFERIOR'] },
+    { name: 'HYDROCAL', parts: ['CONEXÕES 01','CONEXÕES 02','PNL','VALVULAS'] },
+    { name: 'INDICADOR DE ÓLEO', parts: ['CP AB','CP PLACA','CP','INDICADOR DIREITO','INDICADOR ESQUERDO','PANO'] },
+    { name: 'NÚCLEO ARMADURA', parts: ['CP L AB','CP L MEGA 1-2','CP L MEGA 1-M','CP L MEGA 2-M','CP L PLACA INT','CP L PLACA','CP L','CP S AB','CP S MEGA 1-2','CP S MEGA 1-M','CP S MEGA 2-M','CP S PLACA INT','CP S PLACA','CP S'] },
+    { name: 'PNL PRINCIPAL', parts: ['PLACA INT 1','PLACA INT 2','PLACA','PNL AB 1','PNL AB 2','PNL ED','PNL VD','PORT'] },
+    { name: 'PR', parts: ['AT 1','AT 2','COMPLETO','FASE A','FASE B','FASE C','ISOLADOR A','ISOLADOR B','ISOLADOR C','MANIVELA','NO','PANO','PR A','PR B','PR C','SUPERIOR'] },
+    { name: 'REGULADOR', parts: ['AT 1','AT 2','ESCADA','PANO 1','PANO 2','PANO 3','PANO 4','PANO 5','PANO 6','PLACA COD','TANQUE DE EXPANSÃO'] },
+    { name: 'RELE DE BUCHHOLZ', parts: ['COMPLETO','NO','PANO','SUPERIOR'] },
+    { name: 'SENSOR DE TEMPERATURA AMBIENTE', parts: ['FOTO 1','PANO','PLACA'] },
+    { name: 'TAP', parts: ['MANIVELA','PLACA','PNL AB','PNL ED','PNL VD','PNL','TAP'] },
+    { name: 'VÁLVULA DE ALÍVIO DE PRESSÃO', parts: ['LADO 1','LADO 2','PLACA'] },
+    { name: 'VENTILADORES', parts: ['V1-1','V1-2','V1-3','V2-1','V2-2','V2-3','V3-1','V3-2','V3-3','V4-1','V4-2','V4-3'] }
+  ]}
+];
+
+// ── IndexedDB ─────────────────────────────────────────────────────────────────
+const DB_NAME = 'equipdoc_db';
+const DB_VER  = 2;
+let db = null;
+
+function openDB(){
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('equipments')) d.createObjectStore('equipments', {keyPath:'id'});
+      if(!d.objectStoreNames.contains('photos'))     d.createObjectStore('photos'); // key: "eqId_partIdx"
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+function dbGet(store, key){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = ()=> res(req.result);
+    req.onerror   = ()=> rej(req.error);
+  });
+}
+
+function dbPut(store, value, key){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readwrite');
+    const req = key !== undefined ? tx.objectStore(store).put(value, key) : tx.objectStore(store).put(value);
+    req.onsuccess = ()=> res();
+    req.onerror   = ()=> rej(req.error);
+  });
+}
+
+function dbDelete(store, key){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = ()=> res();
+    req.onerror   = ()=> rej(req.error);
+  });
+}
+
+function dbGetAll(store){
+  return new Promise((res,rej)=>{
+    const tx  = db.transaction(store,'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = ()=> res(req.result);
+    req.onerror   = ()=> rej(req.error);
+  });
+}
+
+function photoKey(eqId, partIdx){ return `${eqId}_${partIdx}`; }
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let S = {
+  equipments: [],
+  currentEq:  null,
+  currentGroup: null, // nome do grupo atual (para equipamentos agrupados)
+  capturePart: null,
+  captureDataUrl: null,
+  screen: 'home'
+};
+
+function nextId(){ return Date.now() + Math.random().toString(36).slice(2); }
+
+// ── PERSIST ───────────────────────────────────────────────────────────────────
+async function persistEquipments(){
+  for(const eq of S.equipments){
+    await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name, group:p.group||'', note:p.note||'', hasPhoto:p.hasPhoto||false}))});
+  }
+}
+
+// versão da lista padrão — incremente sempre que mudar DEFAULT_EQUIPMENTS
+const DEFAULTS_VERSION = 14;
+
+// Converte definição padrão em objeto de equipamento
+function defToEq(d){
+  const id = nextId();
+  if(d.groups){
+    // Equipamento com grupos: achata em parts com campo group
+    const parts = [];
+    d.groups.forEach(g => {
+      g.parts.forEach(pname => {
+        parts.push({name:pname, group:g.name, note:'', hasPhoto:false});
+      });
+    });
+    return {id, name:d.name, parts};
+  } else {
+    return {id, name:d.name, parts: d.parts.map(pname=>({name:pname, note:'', hasPhoto:false}))};
+  }
+}
+
+async function loadEquipments(){
+  const rows = await dbGetAll('equipments');
+  const savedVersion = parseInt(localStorage.getItem('equipdoc_defaults_ver')||'0');
+
+  if(rows.length === 0){
+    S.equipments = DEFAULT_EQUIPMENTS.map(defToEq);
+    await persistEquipments();
+    localStorage.setItem('equipdoc_defaults_ver', DEFAULTS_VERSION);
+  } else {
+    S.equipments = rows.map(r=>({
+      id: r.id,
+      name: r.name,
+      parts: (r.parts||[]).map(p=>({name:p.name, group:p.group||'', note:p.note||'', hasPhoto:p.hasPhoto||false}))
+    }));
+
+    if(savedVersion < DEFAULTS_VERSION){
+      for(const def of DEFAULT_EQUIPMENTS){
+        const existing = S.equipments.find(e => e.name === def.name);
+        const newFlat = defToEq(def).parts;
+        if(existing){
+          const newParts = newFlat.map(np => {
+            const old = existing.parts.find(p => p.name === np.name && (p.group||'') === (np.group||''));
+            return old ? {...old, group: np.group||''} : np;
+          });
+          existing.parts = newParts;
+          await dbPut('equipments', {
+            id: existing.id, name: existing.name,
+            parts: existing.parts.map(p=>({name:p.name, group:p.group||'', note:p.note, hasPhoto:p.hasPhoto}))
+          });
+        } else {
+          const newEq = defToEq(def);
+          S.equipments.push(newEq);
+          await dbPut('equipments', {
+            id: newEq.id, name: newEq.name,
+            parts: newEq.parts.map(p=>({name:p.name, group:p.group||'', note:p.note, hasPhoto:p.hasPhoto}))
+          });
+        }
+      }
+      localStorage.setItem('equipdoc_defaults_ver', DEFAULTS_VERSION);
+    }
+  }
+}
+
+// ── NAVEGAÇÃO ─────────────────────────────────────────────────────────────────
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('screen-'+id).scrollTop = 0;
+  S.screen = id;
+  updHeader();
+}
+
+function updHeader(){
+  const isHome   = S.screen==='home';
+  const isDetail = S.screen==='detail';
+  const isGroups = S.screen==='groups';
+  document.getElementById('btn-back').style.display  = isHome  ? 'none'        : 'inline-flex';
+  document.getElementById('btn-novo').style.display  = isHome  ? 'inline-flex' : 'none';
+  document.getElementById('btn-more').style.display  = isHome  ? 'inline-flex' : 'none';
+  document.getElementById('btn-theme').style.display = 'inline-flex';
+  document.getElementById('btn-edit').style.display  = isDetail ? 'inline-flex' : 'none';
+  document.getElementById('btn-del').style.display   = (isDetail && !S.currentGroup) || isGroups ? 'inline-flex' : 'none';
+  closeMoreMenu();
+}
+
+function toggleMoreMenu(){
+  const m = document.getElementById('more-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+function closeMoreMenu(){
+  document.getElementById('more-menu').style.display = 'none';
+}
+// Fecha menu ao clicar fora
+document.addEventListener('click', e => {
+  if(!e.target.closest('#more-menu') && !e.target.closest('#btn-more')) closeMoreMenu();
+});
+
+function goBack(){
+  if(S.screen==='new-eq')    go('home');
+  else if(S.screen==='groups'){ go('home'); }
+  else if(S.screen==='detail'){
+    if(S.currentGroup){
+      // Voltando de um grupo → vai para tela de grupos
+      S.currentGroup = null;
+      renderGroups();
+      go('groups');
+    } else {
+      go('home');
+    }
+  }
+  else if(S.screen==='edit-eq'){ go('detail'); renderDetail(); }
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  const list  = document.getElementById('eq-list');
+  const empty = document.getElementById('eq-empty');
+  if(!S.equipments.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML = S.equipments.map((eq,i)=>{
+    const total = eq.parts.length;
+    const done  = eq.parts.filter(p=>p.hasPhoto).length;
+    const pct   = total ? Math.round(done/total*100) : 0;
+    return `<div class="eq-card" onclick="openEq(${i})">
+      <div class="eq-ico">🔧</div>
+      <div class="eq-info">
+        <div class="eq-name">${eq.name}</div>
+        <div class="eq-meta">${total} partes · ${done} fotografadas · ${pct}%</div>
+        <div class="eq-pbar"><div class="eq-pfill" style="width:${pct}%"></div></div>
+      </div>
+      <span style="color:var(--text3);font-size:18px">›</span>
+    </div>`;
+  }).join('');
+}
+
+// ── NOVO EQUIPAMENTO ──────────────────────────────────────────────────────────
+function openNewEq(){
+  document.getElementById('eq-name-inp').value='';
+  document.getElementById('parts-cont').innerHTML='';
+  addPartRow();
+  go('new-eq');
+}
+
+function addPartRow(name=''){
+  const c = document.getElementById('parts-cont');
+  const d = document.createElement('div');
+  d.className='part-row';
+  d.innerHTML=`<input class="finp" type="text" placeholder="Nome da parte" value="${name}" style="flex:1;margin:0">
+    <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()">✕</button>`;
+  c.appendChild(d);
+}
+
+async function saveEquipment(){
+  const name = document.getElementById('eq-name-inp').value.trim();
+  if(!name){ toast('⚠ Digite o nome do equipamento'); return; }
+  const rows = document.querySelectorAll('#parts-cont .part-row');
+  if(!rows.length){ toast('⚠ Adicione pelo menos uma parte'); return; }
+  const parts=[]; let ok=true;
+  rows.forEach(r=>{
+    const pname = r.querySelector('input').value.trim();
+    if(!pname){ ok=false; return; }
+    parts.push({name:pname, note:'', hasPhoto:false});
+  });
+  if(!ok){ toast('⚠ Preencha todos os nomes'); return; }
+  const eq = {id: nextId(), name, parts};
+  S.equipments.push(eq);
+  await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
+  toast('✓ Equipamento salvo');
+  renderHome();
+  go('home');
+}
+
+async function deleteCurrentEq(){
+  const eq = S.equipments[S.currentEq];
+  const ok = await customConfirm(`Excluir "${eq.name}" e todas as fotos?`);
+  if(!ok) return;
+  // delete photos
+  for(let i=0;i<eq.parts.length;i++) await dbDelete('photos', photoKey(eq.id,i)).catch(()=>{});
+  await dbDelete('equipments', eq.id);
+  S.equipments.splice(S.currentEq,1);
+  renderHome(); go('home'); toast('Equipamento excluído');
+}
+
+function openDupModal(){
+  if(!S.equipments.length){ toast('⚠ Nenhum equipamento para duplicar'); return; }
+  const list = document.getElementById('dup-list');
+  list.innerHTML = S.equipments.map((eq,i) => `
+    <div onclick="confirmDup(${i})" style="
+      padding:14px 16px;background:var(--bg3);border:1px solid var(--border2);
+      border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;
+      display:flex;align-items:center;gap:12px">
+      <span style="font-size:18px">🔧</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${eq.name}</div>
+        <div style="font-size:11px;color:var(--text2);font-family:var(--mono)">${eq.parts.length} partes</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('modal-dup').classList.add('open');
+}
+
+function closeDupModal(){
+  document.getElementById('modal-dup').classList.remove('open');
+}
+
+async function confirmDup(idx){
+  closeDupModal();
+  const eq = S.equipments[idx];
+  const newEq = {
+    id: nextId(),
+    name: eq.name + ' (cópia)',
+    parts: eq.parts.map(p => ({ name: p.name, note: '', hasPhoto: false }))
+  };
+  S.equipments.push(newEq);
+  await dbPut('equipments', {
+    id: newEq.id, name: newEq.name,
+    parts: newEq.parts.map(p => ({ name: p.name, note: p.note, hasPhoto: p.hasPhoto }))
+  });
+  toast(`✓ "${newEq.name}" criado`);
+  renderHome();
+}
+function openEditEq(){
+  const eq = S.equipments[S.currentEq];
+  document.getElementById('edit-name-inp').value = eq.name;
+  const c = document.getElementById('edit-parts-cont');
+  c.innerHTML='';
+
+  if(S.currentGroup){
+    // Edição dentro de um grupo — mostra só partes desse grupo
+    eq.parts.forEach((p,pi)=>{
+      if((p.group||'') === S.currentGroup){
+        addEditPartRow(p.name, pi, p.hasPhoto, p.group||'');
+      }
+    });
+    // Aviso do grupo atual
+    const hint = document.createElement('p');
+    hint.className = 'hint';
+    hint.textContent = `Editando partes do grupo: ${S.currentGroup}`;
+    hint.style.color = 'var(--accent)';
+    c.insertBefore(hint, c.firstChild);
+  } else {
+    // Edição geral — mostra todas as partes
+    eq.parts.forEach((p,pi)=> addEditPartRow(p.name, pi, p.hasPhoto, p.group||''));
+  }
+  go('edit-eq');
+}
+
+function addEditPartRow(name='', origIdx=null, hasPhoto=false, group=''){
+  const c = document.getElementById('edit-parts-cont');
+  const d = document.createElement('div');
+  d.className='edit-part-row';
+  d.dataset.orig = origIdx !== null ? String(origIdx) : '';
+  d.dataset.group = group;
+  const tag = origIdx !== null
+    ? (hasPhoto ? `<span class="ptag ptag-ok">✓ foto</span>` : `<span class="ptag ptag-no">sem foto</span>`)
+    : `<span class="ptag ptag-no">nova</span>`;
+  d.innerHTML=`<div class="edit-part-wrap">
+      ${!S.currentGroup ? `<input class="finp" type="text" placeholder="Grupo (opcional)" value="${group}" style="margin:0;margin-bottom:4px;font-size:12px;color:var(--text2)" oninput="this.parentElement.parentElement.dataset.group=this.value">` : ''}
+      <input class="finp" type="text" placeholder="Nome da parte" value="${name}" style="margin:0">
+      ${tag}
+    </div>
+    <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()">✕</button>`;
+  c.appendChild(d);
+}
+
+async function saveEditEquipment(){
+  const name = document.getElementById('edit-name-inp').value.trim();
+  if(!name){ toast('⚠ Digite o nome'); return; }
+  const rows = document.querySelectorAll('#edit-parts-cont .edit-part-row');
+  if(!rows.length){ toast('⚠ Adicione pelo menos uma parte'); return; }
+  const eq = S.equipments[S.currentEq];
+  const newParts=[]; let ok=true;
+  rows.forEach(r=>{
+    const inputs = r.querySelectorAll('input');
+    const grp   = S.currentGroup || inputs[0].value.trim();
+    const pname = inputs[S.currentGroup ? 1 : 1].value.trim();
+    if(!pname){ ok=false; return; }
+    const oi = r.dataset.orig !== '' ? parseInt(r.dataset.orig) : null;
+    if(oi !== null && eq.parts[oi]){
+      newParts.push({...eq.parts[oi], name:pname, group:grp});
+    } else {
+      newParts.push({name:pname, group:grp, note:'', hasPhoto:false});
+    }
+  });
+  if(!ok){ toast('⚠ Preencha todos os nomes'); return; }
+  eq.name = name;
+
+  if(S.currentGroup){
+    // Edição de grupo: substitui só as partes desse grupo, mantém as outras
+    const outrasPartes = eq.parts.filter(p=>(p.group||'') !== S.currentGroup);
+    eq.parts = [...outrasPartes, ...newParts];
+  } else {
+    eq.parts = newParts;
+  }
+
+  await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
+  toast('✓ Alterações salvas');
+  renderHome();
+  if(S.currentGroup){
+    renderDetail();
+    go('detail');
+  } else {
+    const hasGroups = eq.parts.some(p=>p.group);
+    if(hasGroups){ renderGroups(); go('groups'); }
+    else { renderDetail(); go('detail'); }
+  }
+}
+
+// ── DETALHE ───────────────────────────────────────────────────────────────────
+function openEq(idx){
+  S.currentEq = idx;
+  S.currentGroup = null;
+  const eq = S.equipments[idx];
+  const hasGroups = eq.parts.some(p => p.group);
+  if(hasGroups){
+    renderGroups();
+    go('groups');
+  } else {
+    renderDetail();
+    go('detail');
+  }
+}
+
+function renderGroups(){
+  const eq = S.equipments[S.currentEq];
+  if(!eq) return;
+  const total = eq.parts.length;
+  const done  = eq.parts.filter(p=>p.hasPhoto).length;
+  const pct   = total ? Math.round(done/total*100) : 0;
+
+  document.getElementById('groups-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-lbl">Total fotos</div></div>
+    <div class="stat-card"><div class="stat-val">${done}/${total}</div><div class="stat-lbl">Fotografadas</div></div>`;
+  document.getElementById('groups-gp-pct').textContent = pct+'%';
+  document.getElementById('groups-gp-fill').style.width = pct+'%';
+
+  // Agrupa partes por grupo
+  const groupMap = {};
+  eq.parts.forEach(part => {
+    const g = part.group || '__sem_grupo__';
+    if(!groupMap[g]) groupMap[g] = [];
+    groupMap[g].push(part);
+  });
+
+  document.getElementById('groups-list').innerHTML = Object.entries(groupMap).map(([gName, items])=>{
+    const gDone  = items.filter(p=>p.hasPhoto).length;
+    const gTotal = items.length;
+    const gPct   = gTotal ? Math.round(gDone/gTotal*100) : 0;
+    const displayName = gName === '__sem_grupo__' ? 'SEM GRUPO' : gName;
+    return `<div class="eq-card" onclick="openGroup('${gName}')">
+      <div class="eq-ico" style="font-size:16px;background:rgba(var(--accent-rgb,30,64,175),0.12)">📁</div>
+      <div class="eq-info">
+        <div class="eq-name">${displayName}</div>
+        <div class="eq-meta">${gTotal} fotos · ${gDone} tiradas · ${gPct}%</div>
+        <div class="eq-pbar"><div class="eq-pfill" style="width:${gPct}%"></div></div>
+      </div>
+      <span style="color:var(--text3);font-size:18px">›</span>
+    </div>`;
+  }).join('');
+}
+
+function openGroup(groupName){
+  S.currentGroup = groupName;
+  renderDetail();
+  go('detail');
+}
+
+async function renderDetail(){
+  const eq = S.equipments[S.currentEq];
+  if(!eq) return;
+
+  // Filtra partes pelo grupo atual se estiver num grupo
+  const parts = S.currentGroup
+    ? eq.parts.map((p,i)=>({...p,_pi:i})).filter(p=>p.group===S.currentGroup)
+    : eq.parts.map((p,i)=>({...p,_pi:i}));
+
+  const total = parts.length;
+  const done  = parts.filter(p=>p.hasPhoto).length;
+  const pct   = total ? Math.round(done/total*100) : 0;
+
+  const label = S.currentGroup ? `${eq.name} › ${S.currentGroup}` : eq.name;
+  document.getElementById('detail-eq-label').textContent = label;
+  document.getElementById('dstats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-lbl">Partes</div></div>
+    <div class="stat-card"><div class="stat-val">${done}/${total}</div><div class="stat-lbl">Fotografadas</div></div>`;
+  document.getElementById('gp-pct').textContent = pct+'%';
+  document.getElementById('gp-fill').style.width = pct+'%';
+
+  document.getElementById('parts-list').innerHTML = parts.map(part => partCard(part, part._pi)).join('');
+
+  const observer = new IntersectionObserver(async (entries) => {
+    for(const entry of entries){
+      if(!entry.isIntersecting) continue;
+      const wrap = entry.target;
+      const pi   = parseInt(wrap.dataset.pi);
+      const has  = wrap.dataset.has === '1';
+      if(!has){ observer.unobserve(wrap); continue; }
+      if(wrap.querySelector('img')){ observer.unobserve(wrap); continue; }
+      try {
+        const dataUrl = await dbGet('photos', photoKey(eq.id, pi));
+        if(dataUrl){
+          wrap.innerHTML = `<img class="thumb" src="${dataUrl}" alt="${eq.parts[pi].name}">`;
+        } else {
+          wrap.innerHTML = `<div class="ph-empty" style="font-size:13px;color:var(--text3)">sem foto</div>`;
+        }
+      } catch(e){
+        wrap.innerHTML = `<div class="ph-empty" style="font-size:13px;color:var(--text3)">erro</div>`;
+      }
+      observer.unobserve(wrap);
+    }
+  }, { root: document.getElementById('screen-detail'), rootMargin: '100px', threshold: 0.1 });
+
+  document.querySelectorAll('.thumb-wrap[data-has="1"]').forEach(el => observer.observe(el));
+}
+
+function partCard(part, pi){
+  return `<div class="part-sec">
+    <div class="part-hdr">
+      <div class="part-title">${part.name}</div>
+      <div class="part-badge ${part.hasPhoto?'badge-ok':'badge-no'}">${part.hasPhoto?'✓ OK':'Pendente'}</div>
+    </div>
+    <div class="part-body">
+      <div class="thumb-wrap" id="thumb-${pi}" data-pi="${pi}" data-has="${part.hasPhoto?'1':'0'}">
+        <div class="ph-empty" style="font-size:13px;color:var(--text3)">${part.hasPhoto?'Carregando...':'sem foto'}</div>
+      </div>
+      <div class="fname">${part.name}.jpg</div>
+      ${part.note ? `<div class="fnote">${part.note}</div>` : ''}
+      <div class="p-actions">
+        <button class="btn" onclick="startCapture(${pi})">${part.hasPhoto?'↺ Refazer':'+ Tirar foto'}</button>
+        ${part.hasPhoto?`<button class="btn btn-danger" onclick="deletePhoto(${pi})">× Apagar</button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── CONFIRM MODAL (substitui confirm() nativo bloqueado pelo Chrome) ──────────
+let _confirmResolve = null;
+function customConfirm(msg){
+  return new Promise(res => {
+    _confirmResolve = res;
+    document.getElementById('mc-msg').textContent = msg;
+    document.getElementById('modal-confirm').classList.add('open');
+  });
+}
+function confirmResolve(val){
+  document.getElementById('modal-confirm').classList.remove('open');
+  if(_confirmResolve){ _confirmResolve(val); _confirmResolve = null; }
+}
+
+// ── APAGAR FOTO ───────────────────────────────────────────────────────────────
+async function deletePhoto(pi){
+  const ok = await customConfirm('Apagar esta foto?');
+  if(!ok) return;
+  const eq = S.equipments[S.currentEq];
+  await dbDelete('photos', photoKey(eq.id, pi));
+  eq.parts[pi].hasPhoto = false;
+  eq.parts[pi].note = '';
+  await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
+  toast('Foto apagada');
+  const scr = document.getElementById('screen-detail');
+  const scrollY = scr.scrollTop;
+  await renderDetail();
+  scr.scrollTop = scrollY;
+}
+
+async function deleteAllPhotos(){
+  const eq = S.equipments[S.currentEq];
+  const hasAny = eq.parts.some(p=>p.hasPhoto);
+  if(!hasAny){ toast('⚠ Nenhuma foto para apagar'); return; }
+  const ok = await customConfirm(`Apagar TODAS as fotos de "${eq.name}"?`);
+  if(!ok) return;
+  showLoading('Apagando fotos...');
+  for(let i=0;i<eq.parts.length;i++){
+    await dbDelete('photos', photoKey(eq.id,i)).catch(()=>{});
+    eq.parts[i].hasPhoto = false;
+    eq.parts[i].note = '';
+  }
+  await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
+  hideLoading();
+  toast('✓ Todas as fotos apagadas');
+  renderHome();
+  if(S.currentGroup){
+    S.currentGroup = null;
+    renderGroups();
+    go('groups');
+  } else {
+    await renderDetail();
+  }
+}
+
+// ── CAPTURA INLINE (sem trocar de tela) ───────────────────────────────────────
+function startCapture(pi){
+  S.capturePart    = pi;
+  S.captureDataUrl = null;
+  const eq   = S.equipments[S.currentEq];
+  const part = eq.parts[pi];
+  document.getElementById('mf-title').textContent   = part.name;
+  document.getElementById('mf-fname').textContent   = `${part.name}.jpg`;
+  document.getElementById('mf-note').value          = part.note||'';
+  document.getElementById('mf-preview').style.display = 'none';
+  document.getElementById('mf-empty').style.display   = 'flex';
+  document.getElementById('mf-save-btn').disabled      = true;
+  document.getElementById('file-inp-inline').value     = '';
+  document.getElementById('modal-foto').classList.add('open');
+}
+
+function closeFotoModal(){
+  document.getElementById('modal-foto').classList.remove('open');
+}
+
+function handleFileInline(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    S.captureDataUrl = ev.target.result;
+    const img = document.getElementById('mf-preview');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    document.getElementById('mf-empty').style.display = 'none';
+    document.getElementById('mf-save-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function savePhotoInline(){
+  if(!S.captureDataUrl){ toast('⚠ Selecione uma foto primeiro'); return; }
+  closeFotoModal();
+  showLoading('Salvando foto...');
+  try {
+    const eq   = S.equipments[S.currentEq];
+    const part = eq.parts[S.capturePart];
+    part.note     = document.getElementById('mf-note').value.trim();
+    part.hasPhoto = true;
+    await dbPut('photos', S.captureDataUrl, photoKey(eq.id, S.capturePart));
+    await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
+    // Guardar scroll antes de re-renderizar
+    const scr = document.getElementById('screen-detail');
+    const scrollY = scr.scrollTop;
+    hideLoading();
+    toast('✓ Foto salva');
+    await renderDetail();
+    scr.scrollTop = scrollY; // restaurar posição
+  } catch(err){
+    hideLoading();
+    toast('⚠ Erro ao salvar: '+err.message);
+  }
+}
+
+// ── ZIP ───────────────────────────────────────────────────────────────────────
+function openZipModal(){
+  const eq = S.equipments[S.currentEq];
+  if(!eq.parts.some(p=>p.hasPhoto)){ toast('⚠ Nenhuma foto para exportar'); return; }
+  document.getElementById('zip-code-inp').value='';
+  document.getElementById('zip-sub-inp').value='';
+  const isCarro = eq.name.toUpperCase().includes('CARRO');
+  document.getElementById('zip-code-lbl').textContent = isCarro ? 'Placa do veículo' : 'Código do equipamento';
+  document.getElementById('zip-code-inp').placeholder  = isCarro ? 'Ex: ABC-1234' : 'Ex: 39T1';
+  document.getElementById('zip-sub-lbl').textContent  = isCarro ? 'Cidade' : 'Subestação';
+  document.getElementById('zip-sub-inp').placeholder   = isCarro ? 'Ex: TERESINA' : 'Ex: SE TERESINA';
+  document.getElementById('modal-zip').classList.add('open');
+  setTimeout(()=>document.getElementById('zip-code-inp').focus(),100);
+}
+function closeZipModal(){ document.getElementById('modal-zip').classList.remove('open'); }
+
+async function confirmExportZip(){
+  const code = document.getElementById('zip-code-inp').value.trim();
+  const sub  = document.getElementById('zip-sub-inp').value.trim();
+  if(!code){ toast('⚠ Digite o código do equipamento'); return; }
+  if(!sub){  toast('⚠ Digite a subestação'); return; }
+  const eq = S.equipments[S.currentEq];
+  const sigla = getSigla(eq.name);
+  const filename = `${sigla} ${code} ${sub}`;
+  closeZipModal();
+  showLoading('Gerando ZIP...');
+  try {
+    const result = await gerarZip(filename, code, sigla);
+    hideLoading();
+    const msg = result.countNC > 0
+      ? `✓ ${filename}.zip · ${result.count} foto${result.count>1?'s':''} · ${result.countNC} não conformidade${result.countNC>1?'s':''}`
+      : `✓ ${filename}.zip · ${result.count} foto${result.count>1?'s':''}`;
+    toast(msg, 3500);
+  } catch(err){
+    hideLoading();
+    toast('⚠ Erro ao gerar ZIP');
+    console.error(err);
+  }
+}
+
+function getSigla(eqName){
+  const n = eqName.toUpperCase();
+  if(n.includes('DISJUNTOR'))                                                    return 'DJ';
+  if(n.includes('CORRENTE'))                                                     return 'TC';
+  if(n.includes('POTENCIAL') || n.includes('POTÊNCIA') || n.includes('POTENCIA')) return 'TP';
+  if(n.includes('PARA-RAIO') || n.includes('PARARAIO'))                          return 'PR';
+  if(n.includes('REGULADOR') || n === 'TR')                                      return 'TR';
+  if(n.includes('BANCO CAPACITOR') || n.includes('BANCO CAP'))                   return 'BC';
+  if(n.includes('CHAVE'))                                                        return 'CS';
+  if(n.includes('CARRO'))                                                        return 'CAR';
+  return 'EQ';
+}
+
+// Função isolada para evitar vazamento de estado do JSZip no Chrome/Brave
+async function gerarZip(filename, code, sigla){
+  const eq  = S.equipments[S.currentEq];
+  const zip = new JSZip();
+  let folderNC  = null;
+  const isDisjuntor  = eq.name.toUpperCase().includes('DISJUNTOR');
+  const isBc         = sigla === 'BC';
+  const folderOSC    = isDisjuntor ? zip.folder('OSCILOGRAFIA') : null;
+  const folderPOL    = isDisjuntor ? zip.folder('POLOS') : null;
+  const oscKeywords  = ['ABERTURA', 'FECHAMENTO'];
+  const polosKeywords= ['FASE A', 'FASE B', 'FASE C'];
+  let count = 0, countNC = 0;
+  const ncLines = [];
+  const bcRootCopies = {}; // cópias para a raiz do BC
+
+  for(let i=0;i<eq.parts.length;i++){
+    const part = eq.parts[i];
+    if(!part.hasPhoto) continue;
+    const dataUrl = await dbGet('photos', photoKey(eq.id,i));
+    if(!dataUrl) continue;
+    count++;
+    const isOsc   = isDisjuntor && oscKeywords.some(k=>part.name.toUpperCase().includes(k));
+    const isPolos = isDisjuntor && polosKeywords.some(k=>part.name.toUpperCase().includes(k));
+    const b64 = dataUrl.split(',')[1];
+
+    if(part.note){
+      const dest = part.group ? (isBc && part.group==='CELULAS' ? (() => {
+        const letter = (part.name.match(/\s([ABC])\d*$/) || part.name.match(/FASE\s([ABC])$/))||[];
+        return letter[1] ? zip.folder('CELULAS').folder(letter[1]) : zip.folder('CELULAS');
+      })() : zip.folder(part.group)) : zip;
+      if(isOsc)        folderOSC.file(`${part.name}.jpg`, b64, {base64:true});
+      else if(isPolos) folderPOL.file(`${part.name}.jpg`, b64, {base64:true});
+      else             dest.file(`${part.name}.jpg`, b64, {base64:true});
+      ncLines.push({name: part.name, data: b64, note: part.note, group: part.group||''});
+      countNC++;
+    } else if(isOsc){
+      folderOSC.file(`${part.name}.jpg`, b64, {base64:true});
+    } else if(isPolos){
+      folderPOL.file(`${part.name}.jpg`, b64, {base64:true});
+    } else if(isBc && part.group === 'CELULAS'){
+      const letter = (part.name.match(/\s([ABC])\d*$/) || part.name.match(/FASE\s([ABC])$/))||[];
+      if(letter[1]){
+        zip.folder('CELULAS').folder(letter[1]).file(`${part.name}.jpg`, b64, {base64:true});
+      } else {
+        zip.folder('CELULAS').file(`${part.name}.jpg`, b64, {base64:true});
+      }
+    } else if(part.group){
+      zip.folder(part.group).file(`${part.name}.jpg`, b64, {base64:true});
+    } else {
+      zip.file(`${part.name}.jpg`, b64, {base64:true});
+    }
+
+    // BC: coleta cópias para a raiz
+    if(isBc){
+      if(part.name === 'PLACA COD' && part.group && part.group !== 'PAINEL'){
+        bcRootCopies[`${part.group} PLACA COD.jpg`] = b64;
+      }
+      if(part.group === 'PAINEL' && ['AT','PLACA COD','PLACA'].includes(part.name)){
+        bcRootCopies[`${part.name}.jpg`] = b64;
+      }
+      if(part.group === 'PANO' && part.name === 'PANO 1'){
+        bcRootCopies['PANO.jpg'] = b64;
+      }
+    }
+  }
+
+  // Adiciona cópias na raiz para BC
+  Object.entries(bcRootCopies).forEach(([fname, b64]) => {
+    zip.file(fname, b64, {base64:true});
+  });
+
+  // Cria pasta NC com nome final correto e adiciona fotos + txt
+  if(ncLines.length > 0){
+    const ncFolderName = `${sigla},${code},${ncLines.length}`;
+    const hasGroups = ncLines.some(item => item.group);
+    folderNC = zip.folder(ncFolderName);
+    ncLines.forEach((item, i) => {
+      const obs = item.note.toUpperCase();
+      // Foto renomeada de forma simples: número, obs,__
+      const fname = `${i+1}, ${obs},__.jpg`;
+      folderNC.file(fname, item.data, {base64:true});
+    });
+    const header = `NÃO CONFORMIDADES — ${filename}\n${'='.repeat(50)}\n\n`;
+    const body = ncLines.map((item, i) => {
+      const obs = item.note.toUpperCase();
+      if(hasGroups && item.group){
+        return `${item.group} - ${item.name} - ${i+1}, ${obs},__`;
+      } else {
+        return `${item.name} - ${i+1}, ${obs},__`;
+      }
+    }).join('\n');
+    folderNC.file('NÃO CONFORMIDADES.txt', header + body);
+  }
+
+  if(!count) throw new Error('Nenhuma foto');
+
+  const blob = await zip.generateAsync({type:'blob'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`${filename}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  return { count, countNC };
+}
+
+// ── UI UTILS ──────────────────────────────────────────────────────────────────
+function showLoading(txt='Aguarde...'){
+  document.getElementById('loading-txt').textContent = txt;
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading(){ document.getElementById('loading').classList.remove('show'); }
+
+let toastTimer;
+function toast(msg, dur=2800){
+  const el = document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+function openResetModal(){
+  document.getElementById('modal-reset').classList.add('open');
+}
+function closeResetModal(){
+  document.getElementById('modal-reset').classList.remove('open');
+}
+async function confirmReset(){
+  closeResetModal();
+  showLoading('Resetando...');
+  try {
+    // Apaga todas as fotos e equipamentos do IndexedDB
+    const eqs = await dbGetAll('equipments');
+    for(const eq of eqs){
+      for(let i=0; i<(eq.parts||[]).length; i++){
+        await dbDelete('photos', photoKey(eq.id, i)).catch(()=>{});
+      }
+      await dbDelete('equipments', eq.id).catch(()=>{});
+    }
+    // Limpa TODO o localStorage do app
+    localStorage.clear();
+    // Limpa cache do service worker
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    hideLoading();
+    toast('✓ Resetado! Recarregando...');
+    setTimeout(() => location.reload(true), 1000);
+  } catch(e){
+    hideLoading();
+    localStorage.clear();
+    location.reload(true);
+  }
+}
+
+async function forceUpdate(){
+  try {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    toast('↺ Atualizando...');
+    setTimeout(() => location.reload(true), 800);
+  } catch(e){ location.reload(true); }
+}
+
+// ── TEMA ──────────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('equipdoc_theme', isLight ? 'light' : 'dark');
+  document.getElementById('btn-theme').textContent = isLight ? '◑' : '◐';
+}
+
+function applyTheme(){
+  const saved = localStorage.getItem('equipdoc_theme');
+  if(saved === 'light'){
+    document.body.classList.add('light');
+    document.getElementById('btn-theme').textContent = '◑';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init(){
+  applyTheme();
+  showLoading('Carregando...');
+  try {
+    await openDB();
+    await loadEquipments();
+    renderHome();
+    updHeader();
+    hideLoading();
+  } catch(err){
+    hideLoading();
+    document.getElementById('eq-empty').style.display = 'block';
+    document.getElementById('eq-empty').innerHTML = `
+      <div class="empty-ico">⚠️</div>
+      <div class="empty-title">Erro ao inicializar</div>
+      <div class="empty-sub">Tente fechar e reabrir o app.<br>Se persistir, verifique se não está em modo privado.</div>`;
+    updHeader();
+    console.error('Init error:', err);
+  }
+}
+
+init();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
