@@ -161,7 +161,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v30.5</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v31</div>
     </div>
   </div>
 
@@ -208,7 +208,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="gp-bar"><div class="gp-fill" id="gp-fill" style="width:0%"></div></div>
       </div>
       <div class="dactions">
-        <button class="btn" onclick="openZipModal()">↓ Exportar ZIP</button>
+        <button class="btn" id="btn-export-detail" onclick="openZipModal()">↓ Exportar ZIP</button>
         <button class="btn btn-danger" onclick="deleteAllPhotos()">× Apagar tudo</button>
       </div>
       <!-- input de arquivo inline (sem trocar de tela) -->
@@ -322,7 +322,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
 // ── DADOS DEFAULT (do Excel) ──────────────────────────────────────────────────
 const DEFAULT_EQUIPMENTS = [
   { name: 'CHAVE MONO/TANDEM/FUSÍVEL', parts: ['PLACA A','PLACA B','PLACA C','PANO','PLACA COD','AT A','AT B','AT C','MI A1','MI A2','MI A3','MI B1','MI B2','MI B3','MI C1','MI C2','MI C3','FICHA'] },
-  { name: 'DISJUNTOR', parts: ['AT','CABLAGEM 1','CABLAGEM 2','DIAGRAMA','FICHA','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','PANO','PLACA COD','PLACA','PNL AB','PNL ED','PNL VD','FASE A(A)','FASE A','FASE B(A)','FASE B','FASE C(A)','FASE C','FECHAMENTO 1','FECHAMENTO 2','ABERTURA 1','ABERTURA 2'] },
+  { name: 'DISJUNTOR', parts: ['AT','CABLAGEM 1','CABLAGEM 2','DIAGRAMA','FICHA','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','MN','CH','PANO','PLACA COD','PLACA','PNL AB','PNL ED','PNL VD','FASE A(A)','FASE A','FASE B(A)','FASE B','FASE C(A)','FASE C','FECHAMENTO 1','FECHAMENTO 2','ABERTURA 1','ABERTURA 2'] },
   { name: 'TRANSFORMADOR DE CORRENTE', parts: ['AT','AT A','AT B','AT C','FICHA','MI A','MI A2','MI B','MI B2','MI C','MI C2','PANO','PLACA','PLACA A','PLACA B','PLACA C','NO A','NO B','NO C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
   { name: 'PARA-RAIO', parts: ['AT A','AT B','AT C','FASE A','FASE B','FASE C','FICHA','MI A','MI B','MI C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD'] },
   { name: 'TRANSFORMADOR POTENCIAL', parts: ['AT A','AT B','AT C','FICHA','MI A','MI B','MI C','NO A','NO B','NO C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
@@ -444,7 +444,7 @@ async function persistEquipments(){
 }
 
 // versão da lista padrão — incremente sempre que mudar DEFAULT_EQUIPMENTS
-const DEFAULTS_VERSION = 14;
+const DEFAULTS_VERSION = 15;
 
 // Converte definição padrão em objeto de equipamento
 function defToEq(d){
@@ -824,6 +824,9 @@ async function renderDetail(){
 
   const label = S.currentGroup ? `${eq.name} › ${S.currentGroup}` : eq.name;
   document.getElementById('detail-eq-label').textContent = label;
+  // Esconde exportar se estiver dentro de um grupo
+  const btnExport = document.getElementById('btn-export-detail');
+  if(btnExport) btnExport.style.display = S.currentGroup ? 'none' : 'inline-flex';
   document.getElementById('dstats').innerHTML=`
     <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-lbl">Partes</div></div>
     <div class="stat-card"><div class="stat-val">${done}/${total}</div><div class="stat-lbl">Fotografadas</div></div>`;
