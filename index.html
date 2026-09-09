@@ -161,7 +161,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v31</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v31.1</div>
     </div>
   </div>
 
@@ -1125,8 +1125,8 @@ async function gerarZip(filename, code, sigla){
     folderNC = zip.folder(ncFolderName);
     ncLines.forEach((item, i) => {
       const obs = item.note.toUpperCase();
-      // Foto renomeada de forma simples: número, obs,__
-      const fname = `${i+1}, ${obs},__.jpg`;
+      // Foto renomeada: número, obs + nome da parte,__
+      const fname = `${i+1}, ${obs} ${item.name},__.jpg`;
       folderNC.file(fname, item.data, {base64:true});
     });
     const header = `NÃO CONFORMIDADES — ${filename}\n${'='.repeat(50)}\n\n`;
