@@ -145,11 +145,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
   </div>
 
   <!-- MENU MAIS OPÇÕES -->
-  <div id="more-menu" style="display:none;position:fixed;top:60px;right:12px;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.3);min-width:160px;overflow:hidden">
-    <button class="btn" style="width:100%;justify-content:flex-start;border:none;border-radius:0;border-bottom:1px solid var(--border)" onclick="openDupModal();closeMoreMenu()">⧉ Duplicar</button>
-    <button class="btn" style="width:100%;justify-content:flex-start;border:none;border-radius:0;border-bottom:1px solid var(--border)" onclick="forceUpdate();closeMoreMenu()">↺ Atualizar</button>
-    <button class="btn btn-danger" style="width:100%;justify-content:flex-start;border:none;border-radius:0" onclick="openResetModal();closeMoreMenu()">Resetar</button>
-  </div>
+  <div id="more-menu" style="display:none;position:fixed;top:60px;right:12px;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.3);min-width:180px;overflow:hidden"></div>
 
   <!-- HOME -->
   <div class="screen active" id="screen-home">
@@ -161,7 +157,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v31.1</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v31.2</div>
     </div>
   </div>
 
@@ -521,15 +517,31 @@ function updHeader(){
   const isGroups = S.screen==='groups';
   document.getElementById('btn-back').style.display  = isHome  ? 'none'        : 'inline-flex';
   document.getElementById('btn-novo').style.display  = isHome  ? 'inline-flex' : 'none';
-  document.getElementById('btn-more').style.display  = isHome  ? 'inline-flex' : 'none';
+  document.getElementById('btn-more').style.display  = 'inline-flex';
   document.getElementById('btn-theme').style.display = 'inline-flex';
   document.getElementById('btn-edit').style.display  = isDetail ? 'inline-flex' : 'none';
-  document.getElementById('btn-del').style.display   = (isDetail && !S.currentGroup) || isGroups ? 'inline-flex' : 'none';
+  document.getElementById('btn-del').style.display   = 'none';
   closeMoreMenu();
 }
 
 function toggleMoreMenu(){
   const m = document.getElementById('more-menu');
+  const isHome = S.screen === 'home';
+  const isGroups = S.screen === 'groups';
+  const isDetail = S.screen === 'detail';
+
+  if(isHome){
+    m.innerHTML = `
+      <button class="btn" style="width:100%;justify-content:flex-start;border:none;border-radius:0;border-bottom:1px solid var(--border)" onclick="openDupModal();closeMoreMenu()">⧉ Duplicar</button>
+      <button class="btn" style="width:100%;justify-content:flex-start;border:none;border-radius:0;border-bottom:1px solid var(--border)" onclick="forceUpdate();closeMoreMenu()">↺ Atualizar</button>
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start;border:none;border-radius:0" onclick="openResetModal();closeMoreMenu()">Resetar</button>`;
+  } else if(isGroups || (isDetail && !S.currentGroup)){
+    m.innerHTML = `
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start;border:none;border-radius:0" onclick="deleteCurrentEq();closeMoreMenu()">× Excluir equipamento</button>`;
+  } else {
+    m.innerHTML = '';
+    return;
+  }
   m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
 function closeMoreMenu(){
