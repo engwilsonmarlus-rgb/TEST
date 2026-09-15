@@ -143,15 +143,15 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
     <button class="btn" id="btn-edit" style="display:none" onclick="openEditEq()">✏ Editar</button>
     <button class="btn btn-danger" id="btn-del" style="display:none" onclick="deleteCurrentEq()">× Excluir</button>
   </div>
-  <div style="background:rgba(234,179,8,0.12);border-bottom:1px solid rgba(234,179,8,0.25);padding:7px 16px;text-align:center;font-size:12px;color:#ca8a04;font-family:var(--mono)">
-    ℹ Atualizações são aplicadas às 00:00 — exporte antes!
-  </div>
 
   <!-- MENU MAIS OPÇÕES -->
   <div id="more-menu" style="display:none;position:fixed;top:60px;right:12px;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.3);min-width:180px;overflow:hidden"></div>
 
   <!-- HOME -->
   <div class="screen active" id="screen-home">
+    <div style="background:rgba(234,179,8,0.12);border-bottom:1px solid rgba(234,179,8,0.25);padding:7px 16px;text-align:center;font-size:12px;color:#ca8a04;font-family:var(--mono)">
+      ℹ Atualizações são aplicadas às 00:00 — exporte antes!
+    </div>
     <div style="padding:20px">
       <div class="home-title">Equipamentos</div>
       <div id="eq-list"></div>
@@ -160,7 +160,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v31.2</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.0</div>
     </div>
   </div>
 
@@ -278,6 +278,13 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
   </div>
 </div>
 
+<!-- MODAL TELA CHEIA -->
+<div id="modal-fullscreen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:400;flex-direction:column;align-items:center;justify-content:center" onclick="closeFullscreen()">
+  <div style="position:absolute;top:16px;right:16px;color:#fff;font-size:22px;cursor:pointer;z-index:401;background:rgba(0,0,0,0.5);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center">×</div>
+  <img id="fullscreen-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px">
+  <div id="fullscreen-info" style="position:absolute;bottom:20px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.7);font-size:12px;font-family:var(--mono);padding:0 20px"></div>
+</div>
+
 <!-- MODAL CONFIRMAÇÃO -->
 <div class="modal-bg" id="modal-confirm">
   <div class="modal-box">
@@ -298,7 +305,9 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
     <label class="flbl" id="zip-code-lbl">Código do equipamento</label>
     <input class="finp" type="text" id="zip-code-inp" placeholder="Ex: 39T1" style="margin-bottom:12px">
     <label class="flbl" id="zip-sub-lbl">Subestação</label>
-    <input class="finp" type="text" id="zip-sub-inp" placeholder="Ex: SE TERESINA">
+    <input class="finp" type="text" id="zip-sub-inp" placeholder="Ex: SE TERESINA" style="margin-bottom:12px">
+    <label class="flbl">Data do ensaio</label>
+    <input class="finp" type="date" id="zip-date-inp">
     <div class="modal-btns">
       <button class="btn" style="flex:1;justify-content:center" onclick="closeZipModal()">Cancelar</button>
       <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="confirmExportZip()">↓ Baixar</button>
@@ -322,7 +331,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
 const DEFAULT_EQUIPMENTS = [
   { name: 'CHAVE MONO/TANDEM/FUSÍVEL', parts: ['PLACA A','PLACA B','PLACA C','PANO','PLACA COD','AT A','AT B','AT C','MI A1','MI A2','MI A3','MI B1','MI B2','MI B3','MI C1','MI C2','MI C3','FICHA'] },
   { name: 'DISJUNTOR', parts: ['AT','CABLAGEM 1','CABLAGEM 2','DIAGRAMA','FICHA','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','MN','CH','PANO','PLACA COD','PLACA','PNL AB','PNL ED','PNL VD','FASE A(A)','FASE A','FASE B(A)','FASE B','FASE C(A)','FASE C','FECHAMENTO 1','FECHAMENTO 2','ABERTURA 1','ABERTURA 2'] },
-  { name: 'TRANSFORMADOR DE CORRENTE', parts: ['AT','AT A','AT B','AT C','FICHA','MI A','MI A2','MI B','MI B2','MI C','MI C2','PANO','PLACA','PLACA A','PLACA B','PLACA C','NO A','NO B','NO C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
+  { name: 'TRANSFORMADOR DE CORRENTE', parts: ['AT','AT A','AT B','AT C','FICHA','MI A','MI A2','MI B','MI B2','MI C','MI C2','PANO','PLACA','PLACA A','PLACA B','PLACA C','NO A','NO B','NO C','PLACA COD','PLACA DE RELAÇÃO','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
   { name: 'PARA-RAIO', parts: ['AT A','AT B','AT C','FASE A','FASE B','FASE C','FICHA','MI A','MI B','MI C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD'] },
   { name: 'TRANSFORMADOR POTENCIAL', parts: ['AT A','AT B','AT C','FICHA','MI A','MI B','MI C','NO A','NO B','NO C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
   { name: 'CHAVE TRIPOLAR', parts: ['PANO AB','PANO FE','PLACA','PLACA COD','PNL AT','PNL','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','AT A','AT B','AT C','FICHA'] },
@@ -443,7 +452,7 @@ async function persistEquipments(){
 }
 
 // versão da lista padrão — incremente sempre que mudar DEFAULT_EQUIPMENTS
-const DEFAULTS_VERSION = 15;
+const DEFAULTS_VERSION = 16;
 
 // Converte definição padrão em objeto de equipamento
 function defToEq(d){
@@ -882,10 +891,11 @@ function partCard(part, pi){
       <div class="part-badge ${part.hasPhoto?'badge-ok':'badge-no'}">${part.hasPhoto?'✓ OK':'Pendente'}</div>
     </div>
     <div class="part-body">
-      <div class="thumb-wrap" id="thumb-${pi}" data-pi="${pi}" data-has="${part.hasPhoto?'1':'0'}">
+      <div class="thumb-wrap" id="thumb-${pi}" data-pi="${pi}" data-has="${part.hasPhoto?'1':'0'}" ${part.hasPhoto?`onclick="openFullscreen(${pi})" style="cursor:pointer"`:''}>
         <div class="ph-empty" style="font-size:13px;color:var(--text3)">${part.hasPhoto?'Carregando...':'sem foto'}</div>
       </div>
       <div class="fname">${part.name}.jpg</div>
+      
       ${part.note ? `<div class="fnote">${part.note}</div>` : ''}
       <div class="p-actions">
         <button class="btn" onclick="startCapture(${pi})">${part.hasPhoto?'↺ Refazer':'+ Tirar foto'}</button>
@@ -895,7 +905,27 @@ function partCard(part, pi){
   </div>`;
 }
 
-// ── CONFIRM MODAL (substitui confirm() nativo bloqueado pelo Chrome) ──────────
+// ── TELA CHEIA ────────────────────────────────────────────────────────────────
+async function openFullscreen(pi){
+  const eq   = S.equipments[S.currentEq];
+  const part = eq.parts[pi];
+  if(!part.hasPhoto) return;
+  try {
+    const dataUrl = await dbGet('photos', photoKey(eq.id, pi));
+    if(!dataUrl) return;
+    const modal = document.getElementById('modal-fullscreen');
+    document.getElementById('fullscreen-img').src = dataUrl;
+    document.getElementById('fullscreen-info').textContent =
+      `${part.name}`;
+    modal.style.display = 'flex';
+  } catch(e){}
+}
+function closeFullscreen(){
+  document.getElementById('modal-fullscreen').style.display = 'none';
+  document.getElementById('fullscreen-img').src = '';
+}
+
+// ── CONFIRM MODAL
 let _confirmResolve = null;
 function customConfirm(msg){
   return new Promise(res => {
@@ -994,6 +1024,7 @@ async function savePhotoInline(){
     const part = eq.parts[S.capturePart];
     part.note     = document.getElementById('mf-note').value.trim();
     part.hasPhoto = true;
+    
     await dbPut('photos', S.captureDataUrl, photoKey(eq.id, S.capturePart));
     await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
     // Guardar scroll antes de re-renderizar
@@ -1015,6 +1046,7 @@ function openZipModal(){
   if(!eq.parts.some(p=>p.hasPhoto)){ toast('⚠ Nenhuma foto para exportar'); return; }
   document.getElementById('zip-code-inp').value='';
   document.getElementById('zip-sub-inp').value='';
+  document.getElementById('zip-date-inp').value = new Date().toISOString().split('T')[0];
   const isCarro = eq.name.toUpperCase().includes('CARRO');
   document.getElementById('zip-code-lbl').textContent = isCarro ? 'Placa do veículo' : 'Código do equipamento';
   document.getElementById('zip-code-inp').placeholder  = isCarro ? 'Ex: ABC-1234' : 'Ex: 39T1';
@@ -1026,13 +1058,15 @@ function openZipModal(){
 function closeZipModal(){ document.getElementById('modal-zip').classList.remove('open'); }
 
 async function confirmExportZip(){
-  const code = document.getElementById('zip-code-inp').value.trim();
-  const sub  = document.getElementById('zip-sub-inp').value.trim();
+  const code    = document.getElementById('zip-code-inp').value.trim().toUpperCase();
+  const sub     = document.getElementById('zip-sub-inp').value.trim().toUpperCase();
+  const dateVal = document.getElementById('zip-date-inp').value;
   if(!code){ toast('⚠ Digite o código do equipamento'); return; }
   if(!sub){  toast('⚠ Digite a subestação'); return; }
+  const dateStr = dateVal ? dateVal.split('-').reverse().join('-') : '';
   const eq = S.equipments[S.currentEq];
   const sigla = getSigla(eq.name);
-  const filename = `${sigla} ${code} ${sub}`;
+  const filename = dateStr ? `${sigla} ${code} ${sub} ${dateStr}` : `${sigla} ${code} ${sub}`;
   closeZipModal();
   showLoading('Gerando ZIP...');
   try {
@@ -1141,7 +1175,7 @@ async function gerarZip(filename, code, sigla){
     ncLines.forEach((item, i) => {
       const obs = item.note.toUpperCase();
       // Foto renomeada: número, obs + nome da parte,__
-      const fname = `${i+1}, ${obs} ${item.name},__.jpg`;
+      const fname = `${i+1}, ${obs} ${item.name.toUpperCase()},__.jpg`;
       folderNC.file(fname, item.data, {base64:true});
     });
     const header = `NÃO CONFORMIDADES — ${filename}\n${'='.repeat(50)}\n\n`;
