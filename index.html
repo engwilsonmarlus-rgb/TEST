@@ -1063,6 +1063,7 @@ async function confirmExportZip(){
   const dateVal = document.getElementById('zip-date-inp').value;
   if(!code){ toast('⚠ Digite o código do equipamento'); return; }
   if(!sub){  toast('⚠ Digite a subestação'); return; }
+  // Converte DD/MM/AAAA para DD-MM-AAAA no nome do arquivo
   const dateStr = dateVal ? dateVal.split('-').reverse().join('-') : '';
   const eq = S.equipments[S.currentEq];
   const sigla = getSigla(eq.name);
