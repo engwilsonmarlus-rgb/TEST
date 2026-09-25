@@ -160,7 +160,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.0</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.2</div>
     </div>
   </div>
 
@@ -891,14 +891,14 @@ function partCard(part, pi){
       <div class="part-badge ${part.hasPhoto?'badge-ok':'badge-no'}">${part.hasPhoto?'✓ OK':'Pendente'}</div>
     </div>
     <div class="part-body">
-      <div class="thumb-wrap" id="thumb-${pi}" data-pi="${pi}" data-has="${part.hasPhoto?'1':'0'}" ${part.hasPhoto?`onclick="openFullscreen(${pi})" style="cursor:pointer"`:''}>
+      <div class="thumb-wrap" id="thumb-${pi}" data-pi="${pi}" data-has="${part.hasPhoto?'1':'0'}">
         <div class="ph-empty" style="font-size:13px;color:var(--text3)">${part.hasPhoto?'Carregando...':'sem foto'}</div>
       </div>
       <div class="fname">${part.name}.jpg</div>
-      
       ${part.note ? `<div class="fnote">${part.note}</div>` : ''}
       <div class="p-actions">
         <button class="btn" onclick="startCapture(${pi})">${part.hasPhoto?'↺ Refazer':'+ Tirar foto'}</button>
+        ${part.hasPhoto?`<button class="btn" onclick="openFullscreen(${pi})">🔍 Ver foto</button>`:''}
         ${part.hasPhoto?`<button class="btn btn-danger" onclick="deletePhoto(${pi})">× Apagar</button>`:''}
       </div>
     </div>
@@ -1310,6 +1310,17 @@ async function init(){
 
 init();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// Corrige bug de loading ao voltar ao app (Brave, Chrome, Safari iOS)
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') hideLoading();
+});
+window.addEventListener('pageshow', (e) => {
+  hideLoading();
+  // Se página veio do cache do navegador (bfcache), garante estado limpo
+  if(e.persisted) hideLoading();
+});
+window.addEventListener('focus', () => hideLoading());
 </script>
 </body>
 </html>
