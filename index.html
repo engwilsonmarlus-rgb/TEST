@@ -160,7 +160,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.2</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.3</div>
     </div>
   </div>
 
@@ -1046,7 +1046,11 @@ function openZipModal(){
   if(!eq.parts.some(p=>p.hasPhoto)){ toast('⚠ Nenhuma foto para exportar'); return; }
   document.getElementById('zip-code-inp').value='';
   document.getElementById('zip-sub-inp').value='';
-  document.getElementById('zip-date-inp').value = new Date().toISOString().split('T')[0];
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm   = String(today.getMonth()+1).padStart(2,'0');
+  const dd   = String(today.getDate()).padStart(2,'0');
+  document.getElementById('zip-date-inp').value = `${yyyy}-${mm}-${dd}`;
   const isCarro = eq.name.toUpperCase().includes('CARRO');
   document.getElementById('zip-code-lbl').textContent = isCarro ? 'Placa do veículo' : 'Código do equipamento';
   document.getElementById('zip-code-inp').placeholder  = isCarro ? 'Ex: ABC-1234' : 'Ex: 39T1';
