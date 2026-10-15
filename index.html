@@ -160,7 +160,7 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
         <div class="empty-title">Nenhum equipamento</div>
         <div class="empty-sub">Toque em <strong>+ Novo</strong> para começar.</div>
       </div>
-      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.4</div>
+      <div style="text-align:center;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--text3)">EquipDOC · v4.5</div>
     </div>
   </div>
 
@@ -303,9 +303,15 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
     <div class="modal-title">↓ Exportar ZIP</div>
     <div class="modal-sub">Preencha os campos para nomear o arquivo ZIP.</div>
     <label class="flbl" id="zip-code-lbl">Código do equipamento</label>
-    <input class="finp" type="text" id="zip-code-inp" placeholder="Ex: 39T1" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:12px">
+      <span id="zip-sigla-prefix" style="padding:11px 10px;background:var(--bg3);border:1px solid var(--border2);border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:700;white-space:nowrap"></span>
+      <input class="finp" type="text" id="zip-code-inp" placeholder="Ex: 39T1" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;flex:1">
+    </div>
     <label class="flbl" id="zip-sub-lbl">Subestação</label>
-    <input class="finp" type="text" id="zip-sub-inp" placeholder="Ex: SE TERESINA" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:12px">
+      <span id="zip-sub-prefix" style="padding:11px 10px;background:var(--bg3);border:1px solid var(--border2);border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:700;white-space:nowrap">SE </span>
+      <input class="finp" type="text" id="zip-sub-inp" placeholder="Ex: TERESINA" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;flex:1">
+    </div>
     <label class="flbl">Data do ensaio</label>
     <input class="finp" type="date" id="zip-date-inp">
     <div class="modal-btns">
@@ -329,11 +335,11 @@ textarea.finp{resize:vertical;min-height:72px;line-height:1.5}
 <script>
 // ── DADOS DEFAULT (do Excel) ──────────────────────────────────────────────────
 const DEFAULT_EQUIPMENTS = [
-  { name: 'CHAVE MONO/TANDEM/FUSÍVEL', parts: ['PLACA A','PLACA B','PLACA C','PANO','PLACA COD','AT A','AT B','AT C','MI A1','MI A2','MI A3','MI B1','MI B2','MI B3','MI C1','MI C2','MI C3','GANCHO A1','GANCHO A2','GANCHO B1','GANCHO B2','GANCHO C1','GANCHO C2','FICHA'] },
+  { name: 'CHAVE MONO/TANDEM/FUSÍVEL', parts: ['PLACA A','PLACA B','PLACA C','PANO','PLACA COD','AT A','AT B','AT C','MI A1','MI A2','MI A3','MI B1','MI B2','MI B3','MI C1','MI C2','MI C3','GANCHO A1','GANCHO A2','GANCHO B1','GANCHO B2','GANCHO C1','GANCHO C2','ELO A','ELO B','ELO C','FICHA'] },
   { name: 'DISJUNTOR', parts: ['AT','CABLAGEM 1','CABLAGEM 2','DIAGRAMA','FICHA','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','MN','CH','PANO','PLACA COD','PLACA','PNL AB','PNL ED','PNL VD','FASE A(A)','FASE A','FASE B(A)','FASE B','FASE C(A)','FASE C','FECHAMENTO 1','FECHAMENTO 2','ABERTURA 1','ABERTURA 2'] },
-  { name: 'TRANSFORMADOR DE CORRENTE', parts: ['AT','AT A','AT B','AT C','FICHA','MI A','MI A2','MI B','MI B2','MI C','MI C2','PANO','PLACA','PLACA A','PLACA B','PLACA C','NO A','NO B','NO C','PLACA COD','PLACA DE RELAÇÃO','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
+  { name: 'TRANSFORMADOR DE CORRENTE', parts: ['AT','AT A','AT B','AT C','FICHA','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','PANO','PLACA','PLACA A','PLACA B','PLACA C','NO A','NO B','NO C','PLACA COD','PLACA DE RELAÇÃO','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
   { name: 'PARA-RAIO', parts: ['AT A','AT B','AT C','FASE A','FASE B','FASE C','FICHA','MI A','MI B','MI C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD'] },
-  { name: 'TRANSFORMADOR POTENCIAL', parts: ['AT A','AT B','AT C','FICHA','MI A','MI B','MI C','NO A','NO B','NO C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
+  { name: 'TRANSFORMADOR POTENCIAL', parts: ['AT A','AT B','AT C','FICHA','MI A1','MI B1','MI C1','NO A','NO B','NO C','PANO','PLACA A','PLACA B','PLACA C','PLACA COD','PLACA DE RELAÇÕES','PNL AB','PNL AT','PNL ED','PNL VD','PNL','SEC A','SEC B','SEC C','SUSPIRO 1','SUSPIRO 2'] },
   { name: 'CHAVE TRIPOLAR', parts: ['PANO AB','PANO FE','PLACA','PLACA COD','PNL AT','PNL','MI A1','MI A2','MI B1','MI B2','MI C1','MI C2','AT A','AT B','AT C','FICHA'] },
   { name: 'CHECKLIST DO CARRO', parts: ['FRENTE','TRASEIRA','LADO ESQUERDO','LADO DIREITO','PAINEL LIGADO'] },
   { name: 'BANCO CAPACITOR', groups: [
@@ -452,7 +458,7 @@ async function persistEquipments(){
 }
 
 // versão da lista padrão — incremente sempre que mudar DEFAULT_EQUIPMENTS
-const DEFAULTS_VERSION = 17;
+const DEFAULTS_VERSION = 18;
 
 // Converte definição padrão em objeto de equipamento
 function defToEq(d){
@@ -1054,7 +1060,18 @@ function openZipModal(){
   document.getElementById('zip-code-lbl').textContent = isCarro ? 'Placa do veículo' : 'Código do equipamento';
   document.getElementById('zip-code-inp').placeholder  = isCarro ? 'Ex: ABC-1234' : 'Ex: 39T1';
   document.getElementById('zip-sub-lbl').textContent  = isCarro ? 'Cidade' : 'Subestação';
-  document.getElementById('zip-sub-inp').placeholder   = isCarro ? 'Ex: TERESINA' : 'Ex: SE TERESINA';
+  document.getElementById('zip-sub-inp').placeholder   = isCarro ? 'Ex: TERESINA' : 'Ex: TERESINA';
+  // Prefixo sigla no campo de código
+  const siglaEl = document.getElementById('zip-sigla-prefix');
+  if(siglaEl){
+    const sigla = getSigla(eq.name);
+    siglaEl.textContent = sigla + ' ';
+  }
+  // Mostra ou esconde o prefixo "SE "
+  const prefixEl = document.getElementById('zip-sub-prefix');
+  if(prefixEl) prefixEl.style.display = isCarro ? 'none' : '';
+  // Ajusta border-radius do input quando sem prefixo (CARRO)
+  document.getElementById('zip-sub-inp').style.borderRadius = isCarro ? 'var(--radius-sm)' : '0 var(--radius-sm) var(--radius-sm) 0';
   document.getElementById('modal-zip').classList.add('open');
   setTimeout(()=>document.getElementById('zip-code-inp').focus(),100);
 }
@@ -1066,15 +1083,20 @@ async function confirmExportZip(){
   const dateVal = document.getElementById('zip-date-inp').value;
   if(!code){ toast('⚠ Digite o código do equipamento'); return; }
   if(!sub){  toast('⚠ Digite a subestação'); return; }
-  // Converte DD/MM/AAAA para DD-MM-AAAA no nome do arquivo
+  // Converte YYYY-MM-DD para DD-MM-AAAA no nome do arquivo
   const dateStr = dateVal ? dateVal.split('-').reverse().join('-') : '';
+  // Data legível DD/MM/AAAA para o OBS.txt
+  const dateDisplay = dateVal ? dateVal.split('-').reverse().join('/') : '';
   const eq = S.equipments[S.currentEq];
+  const isCarro = eq.name.toUpperCase().includes('CARRO');
   const sigla = getSigla(eq.name);
-  const filename = dateStr ? `${sigla} ${code} ${sub} ${dateStr}` : `${sigla} ${code} ${sub}`;
+  // SE prefixado automaticamente (exceto CARRO)
+  const subFull = isCarro ? sub : 'SE ' + sub;
+  const filename = dateStr ? `${sigla} ${code} ${subFull} ${dateStr}` : `${sigla} ${code} ${subFull}`;
   closeZipModal();
   showLoading('Gerando ZIP...');
   try {
-    const result = await gerarZip(filename, code, sigla);
+    const result = await gerarZip(filename, code, sigla, subFull, dateDisplay);
     hideLoading();
     const msg = result.countNC > 0
       ? `✓ ${filename}.zip · ${result.count} foto${result.count>1?'s':''} · ${result.countNC} não conformidade${result.countNC>1?'s':''}`
@@ -1101,7 +1123,7 @@ function getSigla(eqName){
 }
 
 // Função isolada para evitar vazamento de estado do JSZip no Chrome/Brave
-async function gerarZip(filename, code, sigla){
+async function gerarZip(filename, code, sigla, subFull, dateDisplay){
   const eq  = S.equipments[S.currentEq];
   const zip = new JSZip();
   let folderNC  = null;
@@ -1192,6 +1214,12 @@ async function gerarZip(filename, code, sigla){
       }
     }).join('\n');
     folderNC.file('NÃO CONFORMIDADES.txt', header + body);
+  }
+
+  // Sem NCs: cria OBS.txt na raiz do ZIP (formato igual ao cabeçalho de NCs)
+  if(ncLines.length === 0){
+    const obsContent = `${filename}\n${'='.repeat(50)}`;
+    zip.file('OBS.txt', obsContent);
   }
 
   if(!count) throw new Error('Nenhuma foto');
