@@ -750,20 +750,72 @@ async function saveEditEquipment(){
     if(!pname){ ok=false; return; }
     const oi = r.dataset.orig !== '' ? parseInt(r.dataset.orig) : null;
     if(oi !== null && eq.parts[oi]){
-      newParts.push({...eq.parts[oi], name:pname, group:grp});
+      // _oi guarda o índice original para preservar chaves de foto no IndexedDB
+      newParts.push({...eq.parts[oi], name:pname, group:grp, _oi: oi});
     } else {
-      newParts.push({name:pname, group:grp, note:'', hasPhoto:false});
+      newParts.push({name:pname, group:grp, note:'', hasPhoto:false, _oi: null});
     }
   });
   if(!ok){ toast('⚠ Preencha todos os nomes'); return; }
   eq.name = name;
 
   if(S.currentGroup){
-    // Edição de grupo: substitui só as partes desse grupo, mantém as outras
-    const outrasPartes = eq.parts.filter(p=>(p.group||'') !== S.currentGroup);
-    eq.parts = [...outrasPartes, ...newParts];
+    // ── Atualiza partes do grupo IN-PLACE para preservar índices das fotos ──
+    // Fotos são armazenadas por índice (eqId_N); mover partes para o final
+    // desvia os índices e embaralha todas as fotos do equipamento.
+    const updatedParts = [...eq.parts];
+    const keptOrigIdxs = new Set();
+    const appendParts  = [];
+
+    for(const np of newParts){
+      const { _oi, ...part } = np;
+      if(_oi !== null){
+        updatedParts[_oi] = part;   // atualiza no mesmo slot, índice não muda
+        keptOrigIdxs.add(_oi);
+      } else {
+        appendParts.push(part);     // nova parte: vai pro final
+      }
+    }
+
+    // Partes removidas do grupo: apaga foto e marca slot como null
+    const groupOrigIdxs = eq.parts
+      .map((p,i) => i)
+      .filter(i => (eq.parts[i].group||'') === S.currentGroup);
+    const deletedIdxs = groupOrigIdxs.filter(i => !keptOrigIdxs.has(i));
+
+    for(const di of deletedIdxs){
+      await dbDelete('photos', photoKey(eq.id, di)).catch(()=>{});
+      updatedParts[di] = null;
+    }
+
+    if(deletedIdxs.length > 0){
+      // Compacta nulos e migra fotos dos slots que deslocarem de índice
+      const compacted = [];
+      const migrations = [];
+      updatedParts.forEach((p, oldIdx) => {
+        if(p === null) return;
+        const newIdx = compacted.length;
+        if(newIdx !== oldIdx) migrations.push({ oldIdx, newIdx });
+        compacted.push(p);
+      });
+      appendParts.forEach(p => compacted.push(p));
+      eq.parts = compacted;
+      // Migra fotos: copia do índice antigo para o novo, remove o antigo
+      for(const { oldIdx, newIdx } of migrations){
+        try {
+          const data = await dbGet('photos', photoKey(eq.id, oldIdx));
+          if(data){
+            await dbPut('photos', data, photoKey(eq.id, newIdx));
+            await dbDelete('photos', photoKey(eq.id, oldIdx)).catch(()=>{});
+          }
+        } catch(e){}
+      }
+    } else {
+      // Sem remoções: apenas adiciona novas partes no final, índices intactos
+      eq.parts = [...updatedParts, ...appendParts];
+    }
   } else {
-    eq.parts = newParts;
+    eq.parts = newParts.map(({ _oi, ...p }) => p);
   }
 
   await dbPut('equipments', {id:eq.id, name:eq.name, parts: eq.parts.map(p=>({name:p.name,group:p.group||'',note:p.note,hasPhoto:p.hasPhoto}))});
